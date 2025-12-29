@@ -141,6 +141,17 @@ func WaitForLeader(t testingT, servers ...*Server) (*Server, []*Server) {
 	return tmp.leader, followers
 }
 
+// WaitForBrokerLeader waits for a broker to become leader
+func WaitForBrokerLeader(t testingT, b *Broker) {
+	t.Helper()
+	RetryFunc(t, func() error {
+		if b.raft.State() != raft.Leader {
+			return fmt.Errorf("broker not leader, state: %s", b.raft.State())
+		}
+		return nil
+	})
+}
+
 // RetryFunc retries a function until it succeeds or times out
 func RetryFunc(t testingT, fn func() error) {
 	t.Helper()

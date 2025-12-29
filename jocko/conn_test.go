@@ -85,7 +85,6 @@ func TestConn(t *testing.T) {
 	s, dir := NewTestServer(t, func(cfg *config.Config) {
 		cfg.Bootstrap = true
 		cfg.BootstrapExpect = 1
-		cfg.StartAsLeader = true
 	}, nil)
 	defer os.RemoveAll(dir)
 	err := s.Start(context.Background())
@@ -93,6 +92,8 @@ func TestConn(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer s.Shutdown()
+	// Wait for raft leader election
+	WaitForBrokerLeader(t, s.broker())
 
 	tests := []struct {
 		name string

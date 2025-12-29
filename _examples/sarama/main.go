@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/bodaay/jocko/jocko"
@@ -121,12 +122,13 @@ func setup() (*jocko.Server, string) {
 	s, tmpDir := jocko.NewTestServer(&testing.T{}, func(cfg *config.Config) {
 		cfg.Bootstrap = true
 		cfg.BootstrapExpect = 1
-		cfg.StartAsLeader = true
 	}, nil)
 	if err := s.Start(context.Background()); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to start cluster: %v\n", err)
 		os.Exit(1)
 	}
+	// Wait for leader election before making connections
+	time.Sleep(500 * time.Millisecond)
 
 	conn, err := jocko.Dial("tcp", s.Addr().String())
 	if err != nil {

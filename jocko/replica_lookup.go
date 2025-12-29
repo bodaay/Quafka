@@ -20,13 +20,12 @@ func NewReplicaLookup() *replicaLookup {
 func (rl *replicaLookup) AddReplica(replica *Replica) {
 	rl.lock.Lock()
 	defer rl.lock.Unlock()
-ADD:
-	if t, ok := rl.replica[replica.Partition.Topic]; ok {
-		t[replica.Partition.ID] = replica
-	} else {
-		rl.replica[replica.Partition.Topic] = make(map[int32]*Replica)
-		goto ADD
+	t, ok := rl.replica[replica.Partition.Topic]
+	if !ok {
+		t = make(map[int32]*Replica)
+		rl.replica[replica.Partition.Topic] = t
 	}
+	t[replica.Partition.ID] = replica
 }
 
 func (rl *replicaLookup) Replica(topic string, partition int32) (*Replica, error) {

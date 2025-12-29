@@ -21,8 +21,8 @@ func (r *RequestHeader) Encode(e PacketEncoder) {
 	e.PutInt16(r.APIVersion)
 	e.PutInt32(r.CorrelationID)
 	if err := e.PutString(r.ClientID); err != nil {
-		// TODO: better err handling
-		panic(err)
+		// PutString only fails if string exceeds max size - indicates programming error
+		panic(fmt.Sprintf("request_header: failed to encode ClientID: %v", err))
 	}
 }
 

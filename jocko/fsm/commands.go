@@ -20,7 +20,8 @@ func init() {
 func (c *FSM) applyRegisterGroup(buf []byte, index uint64) interface{} {
 	var req structs.RegisterGroupRequest
 	if err := structs.Decode(buf, &req); err != nil {
-		panic(fmt.Errorf("failed to decode request: %v", err))
+		log.Error.Printf("fsm: failed to decode RegisterGroupRequest: %v", err)
+		return fmt.Errorf("failed to decode request: %v", err)
 	}
 
 	if err := c.state.EnsureGroup(index, &req.Group); err != nil {
@@ -34,7 +35,8 @@ func (c *FSM) applyRegisterGroup(buf []byte, index uint64) interface{} {
 func (c *FSM) applyRegisterNode(buf []byte, index uint64) interface{} {
 	var req structs.RegisterNodeRequest
 	if err := structs.Decode(buf, &req); err != nil {
-		panic(fmt.Errorf("failed to decode request: %v", err))
+		log.Error.Printf("fsm: failed to decode RegisterNodeRequest: %v", err)
+		return fmt.Errorf("failed to decode request: %v", err)
 	}
 
 	if err := c.state.EnsureNode(index, &req.Node); err != nil {
@@ -48,7 +50,8 @@ func (c *FSM) applyRegisterNode(buf []byte, index uint64) interface{} {
 func (c *FSM) applyDeregisterNode(buf []byte, index uint64) interface{} {
 	var req structs.DeregisterNodeRequest
 	if err := structs.Decode(buf, &req); err != nil {
-		panic(fmt.Errorf("failed to decode request: %v", err))
+		log.Error.Printf("fsm: failed to decode DeregisterNodeRequest: %v", err)
+		return fmt.Errorf("failed to decode request: %v", err)
 	}
 
 	if err := c.state.DeleteNode(index, req.Node.Node); err != nil {
@@ -62,7 +65,8 @@ func (c *FSM) applyDeregisterNode(buf []byte, index uint64) interface{} {
 func (c *FSM) applyRegisterTopic(buf []byte, index uint64) interface{} {
 	var req structs.RegisterTopicRequest
 	if err := structs.Decode(buf, &req); err != nil {
-		panic(fmt.Errorf("failed to decode request: %v", err))
+		log.Error.Printf("fsm: failed to decode RegisterTopicRequest: %v", err)
+		return fmt.Errorf("failed to decode request: %v", err)
 	}
 
 	if err := c.state.EnsureTopic(index, &req.Topic); err != nil {
@@ -76,7 +80,8 @@ func (c *FSM) applyRegisterTopic(buf []byte, index uint64) interface{} {
 func (c *FSM) applyDeregisterTopic(buf []byte, index uint64) interface{} {
 	var req structs.DeregisterTopicRequest
 	if err := structs.Decode(buf, &req); err != nil {
-		panic(fmt.Errorf("failed to decode request: %v", err))
+		log.Error.Printf("fsm: failed to decode DeregisterTopicRequest: %v", err)
+		return fmt.Errorf("failed to decode request: %v", err)
 	}
 
 	if err := c.state.DeleteTopic(index, req.Topic.Topic); err != nil {
@@ -90,7 +95,8 @@ func (c *FSM) applyDeregisterTopic(buf []byte, index uint64) interface{} {
 func (c *FSM) applyRegisterPartition(buf []byte, index uint64) interface{} {
 	var req structs.RegisterPartitionRequest
 	if err := structs.Decode(buf, &req); err != nil {
-		panic(fmt.Errorf("failed to decode request: %v", err))
+		log.Error.Printf("fsm: failed to decode RegisterPartitionRequest: %v", err)
+		return fmt.Errorf("failed to decode request: %v", err)
 	}
 
 	if err := c.state.EnsurePartition(index, &req.Partition); err != nil {
@@ -104,7 +110,8 @@ func (c *FSM) applyRegisterPartition(buf []byte, index uint64) interface{} {
 func (c *FSM) applyDeregisterPartition(buf []byte, index uint64) interface{} {
 	var req structs.DeregisterPartitionRequest
 	if err := structs.Decode(buf, &req); err != nil {
-		panic(fmt.Errorf("failed to decode request: %v", err))
+		log.Error.Printf("fsm: failed to decode DeregisterPartitionRequest: %v", err)
+		return fmt.Errorf("failed to decode request: %v", err)
 	}
 
 	if err := c.state.DeletePartition(index, req.Partition.Topic, req.Partition.Partition); err != nil {

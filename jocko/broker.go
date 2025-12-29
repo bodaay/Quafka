@@ -126,13 +126,17 @@ func NewBroker(config *config.Config, tracer opentracing.Tracer) (*Broker, error
 
 // Run starts a loop to handle requests send back responses.
 func (b *Broker) Run(ctx context.Context, requests <-chan *Context, responses chan<- *Context) {
+	defer func() {
+		log.Debug.Printf("broker/%d: run done", b.config.ID)
+	}()
+
 	for {
 		select {
 		case reqCtx := <-requests:
 			log.Debug.Printf("broker/%d: request: %v", b.config.ID, reqCtx)
 
 			if reqCtx == nil {
-				goto DONE
+				return
 			}
 
 			queueSpan, ok := reqCtx.Value(requestQueueSpanKey).(opentracing.Span)
@@ -201,12 +205,9 @@ func (b *Broker) Run(ctx context.Context, requests <-chan *Context, responses ch
 				},
 			}
 		case <-ctx.Done():
-			goto DONE
+			return
 		}
 	}
-DONE:
-	log.Debug.Printf("broker/%d: run done", b.config.ID)
-	return
 }
 
 // Join is used to have the broker join the gossip ring.
@@ -463,7 +464,8 @@ func (b *Broker) handleMetadata(ctx *Context, req *protocol.MetadataRequest) *pr
 
 	_, nodes, err := state.GetNodes()
 	if err != nil {
-		panic(err)
+		log.Error.Printf("broker/%d: failed to get nodes: %v", b.config.ID, err)
+		return &protocol.MetadataResponse{}
 	}
 
 	// TODO: add an index to the table on the check status
@@ -565,39 +567,32 @@ func (b *Broker) handleFindCoordinator(ctx *Context, req *protocol.FindCoordinat
 	res := &protocol.FindCoordinatorResponse{}
 	res.APIVersion = req.Version()
 
-	var broker *metadata.Broker
-	var p *structs.Partition
-	var i int32
-
 	state := b.fsm.State()
 
 	topic, err := b.offsetsTopic(ctx)
 	if err != nil {
-		goto ERROR
+		res.ErrorCode = protocol.ErrUnknown.Code()
+		log.Error.Printf("broker/%d: coordinator error getting offsets topic: %v", b.config.ID, err)
+		return res
 	}
-	i = int32(util.Hash(req.CoordinatorKey) % uint64(len(topic.Partitions)))
-	_, p, err = state.GetPartition(OffsetsTopicName, i)
+
+	i := int32(util.Hash(req.CoordinatorKey) % uint64(len(topic.Partitions)))
+	_, p, err := state.GetPartition(OffsetsTopicName, i)
 	if err != nil {
-		goto ERROR
+		res.ErrorCode = protocol.ErrUnknown.Code()
+		log.Error.Printf("broker/%d: coordinator error getting partition: %v", b.config.ID, err)
+		return res
 	}
 	if p == nil {
 		res.ErrorCode = protocol.ErrUnknownTopicOrPartition.Code()
-		goto ERROR
+		log.Error.Printf("broker/%d: coordinator error: partition not found", b.config.ID)
+		return res
 	}
-	broker = b.brokerLookup.BrokerByID(raft.ServerID(fmt.Sprintf("%d", p.Leader)))
 
+	broker := b.brokerLookup.BrokerByID(raft.ServerID(fmt.Sprintf("%d", p.Leader)))
 	res.Coordinator.NodeID = broker.ID.Int32()
 	res.Coordinator.Host = broker.Host()
 	res.Coordinator.Port = broker.Port()
-
-	return res
-
-ERROR:
-	// todo: which err code to use?
-	if res.ErrorCode == 0 {
-		res.ErrorCode = protocol.ErrUnknown.Code()
-	}
-	log.Error.Printf("broker/%d: broker: %v: coordinator error: %s", b.config.ID, broker, err)
 
 	return res
 }
@@ -760,9 +755,9 @@ func (b *Broker) handleSyncGroup(ctx *Context, r *protocol.SyncGroupRequest) *pr
 		for _, ga := range r.GroupAssignments {
 			if m, ok := group.Members[ga.MemberID]; ok {
 				m.Assignment = ga.MemberAssignment
-			} else {
-				panic("sync group: unknown member")
-			}
+		} else {
+			log.Error.Printf("broker/%d: sync group: unknown member in assignments", b.config.ID)
+		}
 		}
 		_, err = b.raftApply(structs.RegisterGroupRequestType, structs.RegisterGroupRequest{
 			Group: *group,
@@ -776,7 +771,8 @@ func (b *Broker) handleSyncGroup(ctx *Context, r *protocol.SyncGroupRequest) *pr
 		if m, ok := group.Members[r.MemberID]; ok {
 			res.MemberAssignment = m.Assignment
 		} else {
-			panic(fmt.Errorf("sync group: unknown member: %s", r.MemberID))
+			log.Error.Printf("broker/%d: sync group: unknown member: %s", b.config.ID, r.MemberID)
+			res.ErrorCode = protocol.ErrUnknownMemberId.Code()
 		}
 	}
 
@@ -866,8 +862,10 @@ func (b *Broker) handleFetch(ctx *Context, r *protocol.FetchRequest) *protocol.F
 }
 
 func (b *Broker) handleSaslHandshake(ctx *Context, req *protocol.SaslHandshakeRequest) *protocol.SaslHandshakeResponse {
-	panic("not implemented: sasl handshake")
-	return nil
+	sp := span(ctx, b.tracer, "sasl handshake")
+	defer sp.Finish()
+	log.Error.Printf("broker/%d: SASL handshake not implemented", b.config.ID)
+	return &protocol.SaslHandshakeResponse{}
 }
 
 func (b *Broker) handleListGroups(ctx *Context, req *protocol.ListGroupsRequest) *protocol.ListGroupsResponse {
@@ -929,23 +927,35 @@ func (b *Broker) handleDescribeGroups(ctx *Context, req *protocol.DescribeGroups
 }
 
 func (b *Broker) handleStopReplica(ctx *Context, req *protocol.StopReplicaRequest) *protocol.StopReplicaResponse {
-	panic("not implemented: stop replica")
-	return nil
+	sp := span(ctx, b.tracer, "stop replica")
+	defer sp.Finish()
+	log.Error.Printf("broker/%d: stop replica not implemented", b.config.ID)
+	return &protocol.StopReplicaResponse{}
 }
 
 func (b *Broker) handleUpdateMetadata(ctx *Context, req *protocol.UpdateMetadataRequest) *protocol.UpdateMetadataResponse {
-	panic("not implemented: update metadata")
-	return nil
+	sp := span(ctx, b.tracer, "update metadata")
+	defer sp.Finish()
+	log.Error.Printf("broker/%d: update metadata not implemented", b.config.ID)
+	return &protocol.UpdateMetadataResponse{}
 }
 
 func (b *Broker) handleControlledShutdown(ctx *Context, req *protocol.ControlledShutdownRequest) *protocol.ControlledShutdownResponse {
-	panic("not implemented: controlled shutdown")
-	return nil
+	sp := span(ctx, b.tracer, "controlled shutdown")
+	defer sp.Finish()
+	log.Error.Printf("broker/%d: controlled shutdown not implemented", b.config.ID)
+	res := &protocol.ControlledShutdownResponse{}
+	res.APIVersion = req.Version()
+	return res
 }
 
 func (b *Broker) handleOffsetCommit(ctx *Context, req *protocol.OffsetCommitRequest) *protocol.OffsetCommitResponse {
-	panic("not implemented: offset commit")
-	return nil
+	sp := span(ctx, b.tracer, "offset commit")
+	defer sp.Finish()
+	log.Error.Printf("broker/%d: offset commit not implemented", b.config.ID)
+	res := &protocol.OffsetCommitResponse{}
+	res.APIVersion = req.Version()
+	return res
 }
 
 func (b *Broker) handleOffsetFetch(ctx *Context, req *protocol.OffsetFetchRequest) *protocol.OffsetFetchResponse {
@@ -1067,7 +1077,7 @@ func (b *Broker) createTopic(ctx *Context, topic *protocol.CreateTopicRequest) p
 		if broker.ID.Int32() == b.config.ID {
 			errCode := b.handleLeaderAndISR(ctx, req).ErrorCode
 			if protocol.ErrNone.Code() != errCode {
-				panic(fmt.Sprintf("broker/%d: handling leader and isr error: %d", b.config.ID, errCode))
+				log.Error.Printf("broker/%d: handling leader and isr error: %d", b.config.ID, errCode)
 			}
 		} else {
 			conn, err := Dial("tcp", broker.BrokerAddr)
@@ -1405,14 +1415,16 @@ func (b *Broker) logState() {
 			state := b.fsm.State()
 			_, nodes, err := state.GetNodes()
 			if err != nil {
-				panic(err)
+				log.Error.Printf("broker/%d: logState: failed to get nodes: %v", b.config.ID, err)
+				continue
 			}
 			for i, node := range nodes {
 				buf.WriteString(fmt.Sprintf("\t\t- %d:\n\t\t\tid: %d\n\t\t\tstatus: %s\n", i, node.Node, node.Check.Status))
 			}
 			_, topics, err := state.GetTopics()
 			if err != nil {
-				panic(err)
+				log.Error.Printf("broker/%d: logState: failed to get topics: %v", b.config.ID, err)
+				continue
 			}
 			buf.WriteString("\ttopics:\n")
 			for i, topic := range topics {

@@ -176,19 +176,19 @@ func (s *Server) handleRequest(conn net.Conn) {
 		copy(b, p)
 
 		if _, err = io.ReadFull(conn, b[4:]); err != nil {
-			// TODO: handle request
+			log.Error.Printf("server/%d: failed to read from connection: %v", s.config.ID, err)
 			span.LogKV("msg", "failed to read from connection", "err", err)
 			span.Finish()
-			panic(err)
+			break
 		}
 
 		d := protocol.NewDecoder(b)
 		header := new(protocol.RequestHeader)
 		if err := header.Decode(d); err != nil {
-			// TODO: handle err
+			log.Error.Printf("server/%d: failed to decode header: %v", s.config.ID, err)
 			span.LogKV("msg", "failed to decode header", "err", err)
 			span.Finish()
-			panic(err)
+			break
 		}
 
 		span.SetTag("api_key", header.APIKey)
@@ -249,7 +249,7 @@ func (s *Server) handleRequest(conn net.Conn) {
 			log.Error.Printf("server/%d: %s: decode request failed: %s", s.config.ID, header, err)
 			span.LogKV("msg", "failed to decode request", "err", err)
 			span.Finish()
-			panic(err)
+			break
 		}
 
 		decodeSpan.Finish()

@@ -461,8 +461,10 @@ func (b *Broker) handleFailedMember(m serf.Member) error {
 
 	_, partitions, err := state.GetPartitions()
 	if err != nil {
-		panic(err)
+		log.Error.Printf("leader/%d: failed to get partitions: %v", b.config.ID, err)
+		return err
 	}
+	_ = partitions // used for reassignment logic below
 
 	// need to reassign partitions
 	_, partitions, err = state.PartitionsByLeader(meta.ID.Int32())

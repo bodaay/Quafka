@@ -469,6 +469,8 @@ func TestBroker_Run(t *testing.T) {
 					r.Fatal("server not added")
 				}
 			})
+			// Wait for broker to become raft leader
+			WaitForBrokerLeader(t, b)
 			if tt.fields.topics != nil {
 				for topic, ps := range tt.fields.topics {
 					_, err := b.raftApply(structs.RegisterTopicRequestType, structs.RegisterTopicRequest{
@@ -544,6 +546,8 @@ func setupTest(t *testing.T) (
 			r.Fatal("server not added")
 		}
 	})
+	// Wait for broker to become raft leader
+	WaitForBrokerLeader(t, b)
 
 	reqCh = make(chan *Context, 2)
 	resCh = make(chan *Context, 2)

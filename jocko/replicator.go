@@ -119,7 +119,8 @@ func (r *Replicator) appendMessages() {
 		case msg := <-r.msgs:
 			_, err := r.replica.Log.Append(msg)
 			if err != nil {
-				panic(err)
+				log.Error.Printf("replicator: failed to append to log: %v", err)
+				// Continue processing messages even on error - the message will be re-fetched
 			}
 		}
 	}

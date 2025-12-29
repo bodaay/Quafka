@@ -184,11 +184,12 @@ func BenchmarkServer(b *testing.B) {
 	srv, dir := jocko.NewTestServer(b, func(cfg *config.Config) {
 		cfg.Bootstrap = true
 		cfg.BootstrapExpect = 1
-		cfg.StartAsLeader = true
 	}, nil)
 	defer os.RemoveAll(dir)
 	err := srv.Start(ctx)
 	require.NoError(b, err)
+	// Wait for raft leader election
+	jocko.WaitForLeader(b, srv)
 
 	err = createTopic(b, srv)
 	require.NoError(b, err)
