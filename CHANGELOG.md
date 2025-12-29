@@ -15,6 +15,7 @@ All notable changes to Quafka (forked from Jocko) are documented here.
 - **Removed dep** - Migrated from `dep` to Go modules
 - **GitHub Actions CI** - Added automated testing and linting pipeline
 - **golangci-lint** - Integrated static analysis with sensible defaults for legacy code
+- **log/slog migration** - Replaced custom logging with Go 1.21+ structured logging
 
 ### Dependency Modernization
 | Old | New | Notes |
@@ -24,7 +25,7 @@ All notable changes to Quafka (forked from Jocko) are documented here.
 | `github.com/hashicorp/raft-boltdb` | `github.com/hashicorp/raft-boltdb/v2` | Major version upgrade |
 | `github.com/boltdb/bolt` | `go.etcd.io/bbolt` | BoltDB is now maintained by etcd |
 | `github.com/hashicorp/consul/testutil/retry` | Custom implementation | Removed heavy consul dependency |
-| `upspin.io/log` | Custom `log/` package | Removed obscure dependency |
+| `upspin.io/log` | `log/slog` (Go 1.21+) | Standard library structured logging |
 | `io/ioutil` | `os` / `io` | ioutil deprecated in Go 1.16 |
 
 All hashicorp libraries updated to latest versions:
