@@ -88,10 +88,14 @@ docker build -t quafka:latest .
 
 See [CONTRIBUTING](CONTRIBUTING.md) for details on submitting patches and the contribution workflow.
 
+## Acknowledgments
+
+This project is a modernized fork of [Jocko](https://github.com/travisjeffery/jocko), originally created by [Travis Jeffery](https://github.com/travisjeffery). Travis did the heavy lifting of implementing the Kafka protocol in Go and designing the distributed architecture using Raft and Serf. His work on Jocko and the accompanying blog posts laid the foundation for this project.
+
+The articles he wrote are excellent resources for understanding distributed systems:
+- [Building a Kafka that doesn't depend on ZooKeeper](https://medium.com/the-hoard/building-a-kafka-that-doesnt-depend-on-zookeeper-2c4701b6e961)
+- [How Kafka's storage internals work](https://medium.com/the-hoard/how-kafkas-storage-internals-work-3a29b02e026)
+
 ## License
 
 Quafka is under the MIT license, see the [LICENSE](LICENSE) file for details.
-
----
-
-*Originally forked from [travisjeffery/jocko](https://github.com/travisjeffery/jocko)*
