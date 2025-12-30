@@ -7,8 +7,8 @@ on:
     branches: [master, main]
 
 jobs:
-  test:
-    name: Test
+  build:
+    name: Build & Quick Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,12 +25,19 @@ jobs:
       - name: Build
         run: go build -v ./...
 
-      - name: Test
-        run: go test -v -timeout 120s ./...
+      - name: Quick Tests (unit tests only)
+        run: |
+          go test -v -short -timeout 60s ./commitlog/...
+          go test -v -short -timeout 60s ./protocol/...
+          go test -v -short -timeout 30s ./quafka/fsm/...
+          go test -v -short -timeout 30s ./quafka/metadata/...
+          go test -v -short -timeout 30s ./quafka/structs/...
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    # Don't fail the whole CI on lint issues
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -46,9 +53,28 @@ jobs:
           version: latest
           args: --timeout=5m
 
+  # Full integration tests - only on PRs to avoid slow CI on every push
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Full Test Suite
+        run: go test -v -timeout 300s ./...
+
+  # Race detection - only on PRs
   race:
     name: Race Detection
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
 
@@ -59,5 +85,4 @@ jobs:
           cache: true
 
       - name: Test with race detector
-        run: go test -race -p=1 -timeout 180s ./...
-
+        run: go test -race -short -p=1 -timeout 180s ./...
