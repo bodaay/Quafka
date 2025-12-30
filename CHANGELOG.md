@@ -4,6 +4,13 @@ All notable changes to Quafka (forked from Jocko) are documented here.
 
 ## [Unreleased] - 2025
 
+### Critical Bug Fixes
+- **Fixed BuildIndex double-seek bug** - The `BuildIndex()` function in `commitlog/segment.go` had an erroneous `Seek(size, 1)` call after `io.CopyN` which already advances file position. This caused:
+  - Only the first message per segment to be indexed on restart
+  - `NewestOffset()` returning incorrect values (e.g., 1 instead of 41000)
+  - Data appearing "lost" after application restart
+  - Reported by QSE-Service team
+
 ### Consumer Group Support ✨ NEW
 - **Full consumer group implementation** - Complete Kafka consumer group protocol support
 - `JoinGroup` - Consumers can join consumer groups with proper member ID generation
