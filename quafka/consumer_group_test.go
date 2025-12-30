@@ -1,7 +1,7 @@
 //go:build !race
 // +build !race
 
-package jocko
+package quafka
 
 import (
 	"testing"

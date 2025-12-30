@@ -185,7 +185,7 @@ func TestConsumerGroup(t *testing.T) {
 	// TODO: Add full integration test using sarama.ConsumerGroup
 	
 	// Basic test: verify consumer group handlers exist and are registered
-	s1, dir1 := jocko.NewTestServer(t, func(cfg *config.Config) {
+	s1, dir1 := quafka.NewTestServer(t, func(cfg *config.Config) {
 		cfg.Bootstrap = true
 	}, nil)
 	ctx1, cancel1 := context.WithCancel(context.Background())
@@ -195,7 +195,7 @@ func TestConsumerGroup(t *testing.T) {
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
 
-	jocko.WaitForLeader(t, s1)
+	quafka.WaitForLeader(t, s1)
 
 	// Consumer group handlers are implemented and should work with Kafka clients
 	// Full integration testing would require setting up sarama.ConsumerGroup
