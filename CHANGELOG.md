@@ -4,6 +4,28 @@ All notable changes to Quafka (forked from Jocko) are documented here.
 
 ## [Unreleased] - 2025
 
+### Consumer Group Support ✨ NEW
+- **Full consumer group implementation** - Complete Kafka consumer group protocol support
+- `JoinGroup` - Consumers can join consumer groups with proper member ID generation
+- `SyncGroup` - Leader distributes partition assignments to group members
+- `LeaveGroup` - Clean consumer departure from groups
+- `Heartbeat` - Keep consumer sessions alive with generation ID validation
+- `OffsetCommit` - Commit consumed offsets to `__consumer_offsets` internal topic
+- `OffsetFetch` - Retrieve previously committed offsets
+- `FindCoordinator` - Locate the coordinator broker for a group
+- `ListGroups` - List all consumer groups on the broker
+- `DescribeGroups` - Get detailed group state, members, and assignments
+- **Group state machine** - Proper state transitions (Empty → PreparingRebalance → CompletingRebalance → Stable)
+- **Generation ID tracking** - Proper rebalance coordination with generation IDs
+- **Internal `__consumer_offsets` topic** - 50 partitions for offset storage (like Kafka)
+
+### Package Rename
+- **Renamed package from `jocko` to `quafka`** - Internal package now matches project name
+- Updated all `package jocko` declarations to `package quafka`
+- Updated all `jocko.` references to `quafka.`
+- Updated role tags, dialer names, and internal strings
+- Environment variable `JOCKODEBUG` → `QUAFKADEBUG`
+
 ### Project Rename
 - **Renamed from Jocko to Quafka** - Fresh identity for the modernized fork
 - Updated all import paths from `github.com/travisjeffery/jocko` → `github.com/bodaay/quafka`
@@ -83,9 +105,10 @@ This enables:
 - Removed outdated personal links and book promotions
 
 ### Known Limitations
-- `TestConsumerGroup` - Needs migration to IBM/sarama ConsumerGroup API (was using 
-  deprecated `bsm/sarama-cluster`)
 - Some integration tests require longer timeouts in CI environments
+- Replication is partial - basic follower fetching works, but full ISR management needs work
+- No SSL/TLS or SASL authentication yet
+- No transaction support (exactly-once semantics)
 
 ---
 

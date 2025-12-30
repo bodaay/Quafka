@@ -21,11 +21,13 @@ Kafka/distributed commit log service in Go.
 
 This is a **fully modernized fork** of Jocko with significant updates:
 
+- ✨ **Consumer Groups** - Full consumer group protocol support (JoinGroup, SyncGroup, OffsetCommit, etc.)
 - 🚀 **Go 1.23** (was 1.12)
 - 📦 **All dependencies updated** (sarama, raft, serf, uuid, etc.)
 - 🔧 **Bug fixes** - Protocol decoder, leader election, panic handling
 - 🧹 **Code quality** - Removed panics, gotos, debug prints
 - ⚡ **CI/CD** - GitHub Actions with linting
+- 📝 **Package rename** - Internal package renamed from `jocko` to `quafka`
 
 👉 **See [CHANGELOG.md](CHANGELOG.md) for the complete list of changes.**
 
@@ -37,15 +39,21 @@ This is a **fully modernized fork** of Jocko with significant updates:
 - [x] Fetching
 - [x] Partition consensus and distribution
 - [x] Discovery
-- [ ] Protocol
-    - [x] Produce
-    - [x] Fetch
+- [x] Consumer Groups ✨
+- [ ] Protocol APIs
+    - [x] Produce / Fetch
     - [x] Metadata
-    - [x] Create Topics
-    - [x] Delete Topics
-    - [x] Consumer group
+    - [x] Create / Delete Topics
+    - [x] Consumer Group (JoinGroup, SyncGroup, Heartbeat, LeaveGroup)
+    - [x] Offset Commit / Fetch
+    - [x] FindCoordinator, ListGroups, DescribeGroups
+    - [ ] Transactions
+    - [ ] ACLs
 - [ ] API versioning (more versions to implement)
 - [ ] Replication (first draft done)
+- [ ] Security (SSL/TLS, SASL)
+
+See [FEATURES.md](FEATURES.md) for a detailed feature checklist.
 
 ## Project Layout
 
