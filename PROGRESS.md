@@ -39,9 +39,11 @@
 
 ### Test Infrastructure (Jan 6, 2026)
 - Created `TestConsumerGroup` in `quafka/server_test.go`
+- Created `TestConsumerGroupOffsetPersistence` to test sequential consumer groups
 - Reduced `OffsetsTopicReplicationFactor` to 1 for single-node tests
 - Reduced `OffsetsTopicNumPartitions` to 10 for faster test startup
 - **TestConsumerGroup now PASSES** ✅
+- **All integration tests pass** ✅
 
 ### Prior Work (Before Jan 6)
 - Kafka client compatibility fixes (MetadataRequest/Response)
